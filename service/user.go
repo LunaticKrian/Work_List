@@ -2,8 +2,10 @@ package service
 
 import (
 	"awesomeProject/config/utls/database"
+	"awesomeProject/config/utls/jwt"
 	"awesomeProject/config/utls/serializer"
 	"awesomeProject/model"
+	"github.com/jinzhu/gorm"
 	"net/http"
 )
 
@@ -22,7 +24,7 @@ func (UserService *UserService) UserRegister() serializer.Response[string] {
 	if count == 1 {
 		return serializer.Response[string]{
 			Status:  http.StatusBadRequest,
-			Massage: "当前用户名已被注册，请更换用户名或者登录当前账户！",
+			Message: "当前用户名已被注册，请更换用户名或者登录当前账户！",
 		}
 	}
 	user.UserName = UserService.UserName
@@ -32,7 +34,7 @@ func (UserService *UserService) UserRegister() serializer.Response[string] {
 	if err != nil {
 		return serializer.Response[string]{
 			Status:  http.StatusBadRequest,
-			Massage: "服务器内部异常，密码加密失败！",
+			Message: "服务器内部异常，密码加密失败！",
 			Error:   err.Error(),
 		}
 	}
@@ -42,12 +44,57 @@ func (UserService *UserService) UserRegister() serializer.Response[string] {
 	if err := database.Db.Create(&user).Error; err != nil {
 		return serializer.Response[string]{
 			Status:  http.StatusInternalServerError,
-			Massage: "数据库操作失败！",
+			Message: "数据库操作失败！",
 		}
 	}
 	return serializer.Response[string]{
 		Status:  http.StatusOK,
-		Massage: "用户注册成功！",
+		Message: "用户注册成功！",
 		Data:    serializer.ToJson[model.User](user),
+	}
+}
+
+// UserLogin
+// @Func: 用户登录逻辑
+func (UserService *UserService) UserLogin() serializer.Response[interface{}] {
+	var user model.User
+
+	// 从数据库中查询：
+	if err := database.Db.Where("user_name=?", UserService.UserName).First(&user).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return serializer.Response[interface{}]{
+				Status:  http.StatusBadRequest,
+				Message: "当前登录用户不存在，请注册后登录！",
+			}
+		}
+		// 其他错误情况：
+		return serializer.Response[interface{}]{
+			Status:  http.StatusInternalServerError,
+			Message: "服务器发生了未知错误！",
+		}
+	}
+
+	// 校验密码：
+	if serializer.ComparePassword(user.Password, UserService.Password) == false {
+		return serializer.Response[interface{}]{
+			Status:  http.StatusBadRequest,
+			Message: "密码输入错误！",
+		}
+	}
+
+	// 发送Token，身份验证：
+	token, err := jwt.GenerateToken(user.ID, user.UserName, user.Password)
+	if err != nil {
+		return serializer.Response[interface{}]{
+			Status:  http.StatusInternalServerError,
+			Message: "token签发错误！！！",
+		}
+	}
+
+	// 正常返回：
+	return serializer.Response[interface{}]{
+		Status:  http.StatusOK,
+		Data:    serializer.TokenData{User: serializer.BuildUser(user), Token: token},
+		Message: "登录成功！",
 	}
 }

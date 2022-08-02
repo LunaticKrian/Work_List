@@ -24,3 +24,10 @@ func CheckPassword(encryptPassword string, password string) error {
 	}
 	return nil
 }
+
+// ComparePassword
+// @Func: 比较密码
+func ComparePassword(encryptPassword string, password string) bool {
+	err := CheckPassword(encryptPassword, password)
+	return err == nil
+}

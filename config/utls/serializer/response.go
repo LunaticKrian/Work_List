@@ -5,6 +5,13 @@ package serializer
 type Response[T any] struct {
 	Status  int    `json:"status"`
 	Data    T      `json:"data"`
-	Massage string `json:"massage"`
+	Message string `json:"massage"`
 	Error   string `json:"error"`
+}
+
+// TokenData
+// @Func: token信息
+type TokenData struct {
+	User  interface{} `json:"user"`
+	Token string      `json:"token"`
 }
