@@ -12,13 +12,13 @@ var JWTsecret = []byte("Krian")
 type Claims struct {
 	Id       uint   `json:"id"`
 	UserName string `json:"user_name"`
-	Password string `json:"password"`
+	//Password string `json:"password"` // token中存放密码不安全！！！
 	jwt.StandardClaims
 }
 
 // GenerateToken
 // @Func: 签发token
-func GenerateToken(id uint, username, password string) (string, error) {
+func GenerateToken(id uint, username string) (string, error) {
 	notTime := time.Now()
 	// 设置token过期时间：
 	expireTime := notTime.Add(24 * time.Hour)
@@ -26,7 +26,6 @@ func GenerateToken(id uint, username, password string) (string, error) {
 	claims := Claims{
 		Id:       id,
 		UserName: username,
-		Password: password,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expireTime.Unix(),
 			Issuer:    "awesomeProject",

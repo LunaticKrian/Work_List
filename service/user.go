@@ -83,7 +83,7 @@ func (UserService *UserService) UserLogin() serializer.Response[interface{}] {
 	}
 
 	// 发送Token，身份验证：
-	token, err := jwt.GenerateToken(user.ID, user.UserName, user.Password)
+	token, err := jwt.GenerateToken(user.ID, user.UserName)
 	if err != nil {
 		return serializer.Response[interface{}]{
 			Status:  http.StatusInternalServerError,

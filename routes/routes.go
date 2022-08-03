@@ -23,7 +23,18 @@ func NewRouter() *gin.Engine {
 		authed.Use(midlleware.JWT())
 		{
 			// 任务操作：
+			// 创建Task任务：
 			authed.POST("task", controller.CreateTask)
+			// 查看一个Task详细信息：
+			authed.GET("task/:id", controller.ShowTask)
+			// 获取当前用户的所有Task任务列表：
+			authed.GET("tasks", controller.ListTask)
+			// 删除指定Task任务信息：
+			authed.DELETE("task/:id", controller.DeleteTask)
+			// 更新指定Task任务信息：
+			authed.PUT("task/:id", controller.UpdateTask)
+			// 搜索Task任务：
+			authed.POST("search", controller.SearchTasks)
 		}
 	}
 	return r
